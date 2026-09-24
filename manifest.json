@@ -1,0 +1,10 @@
+{
+  "name": "Sage Prayer Sim",
+  "short_name": "Prayer Sim",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [{ "src": "assets/icons/soul_impact.png", "sizes": "200x200", "type": "image/png" }]
+}

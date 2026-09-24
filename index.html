@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prayer Sim">
+<meta name="theme-color" content="#111111">
+<title>Sage Prayer Sim</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/soul_impact.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- Home -->
+  <section id="home" class="screen active">
+    <img class="bg" src="assets/home.jpg" alt="">
+    <button class="hotspot" id="statue" style="left:140px;top:1400px;width:350px;height:380px" aria-label="Angel statue"></button>
+  </section>
+
+  <!-- Prayer -->
+  <section id="prayer" class="screen">
+    <img class="bg" src="assets/prayer.jpg" alt="">
+    <div class="gem-cover"><span class="gem-count"></span></div>
+    <div class="points-cover"><span id="points"></span></div>
+    <div id="prayers-plaque"></div>
+    <div id="pity">
+      <div class="pity-line"><span class="warn">!</span><span>Prayer ×<span id="leg-away"></span> away from a guaranteed <b>Legendary</b> skill</span></div>
+      <div class="pity-line"><span id="sage-away"></span> <b>Legendary</b> Skill drop(s) away from a</div>
+      <div class="pity-line">guaranteed Sage Skill</div>
+    </div>
+    <button class="hotspot" id="title-hold" style="left:50px;top:230px;width:220px;height:110px" aria-label="Prayer (hold to reset)"></button>
+    <button class="hotspot" id="pray1" style="left:10px;top:1965px;width:385px;height:105px" aria-label="Pray x1"></button>
+    <button class="hotspot" id="pray10" style="left:410px;top:1965px;width:385px;height:105px" aria-label="Pray x10"></button>
+    <button class="hotspot" id="pray100" style="left:810px;top:1965px;width:390px;height:105px" aria-label="Pray x100"></button>
+    <button class="hotspot" id="prayer-back" style="left:30px;top:2360px;width:190px;height:120px" aria-label="Back"></button>
+  </section>
+
+  <!-- Draw / reveal -->
+  <section id="draw" class="screen">
+    <img class="bg" src="assets/draw_bg.jpg" alt="">
+    <div class="gem-cover"><span class="gem-count"></span></div>
+    <div id="draw-today"></div>
+    <div id="grid"><div id="grid-inner"></div></div>
+    <div id="draw-bottom">
+      <img src="assets/result_bottom.jpg" alt="">
+      <button class="hotspot" id="draw-back" style="left:25px;top:215px;width:200px;height:125px" aria-label="Back"></button>
+    </div>
+  </section>
+
+  <!-- Confirm dialog -->
+  <div id="confirm" hidden>
+    <div class="panel">
+      <div class="panel-head">Confirm</div>
+      <div class="panel-body">
+        <p>Draw 100 times?</p>
+        <label class="radio"><input type="checkbox" id="dont-show"><span class="dot"></span>Don't show again today</label>
+        <div class="panel-buttons">
+          <button id="cancel" class="pill pill-cancel">Cancel</button>
+          <button id="ok" class="pill pill-ok">OK</button>
+        </div>
+      </div>
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    </div>
+  </div>
+
+  <div id="toast" hidden></div>
+</div>
+<script src="skills.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
