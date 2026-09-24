@@ -3,8 +3,8 @@
 
   const STAGE_W = 1206, STAGE_H = 2622;
   const CLASS_ID = 'sage';
-  const STORE_KEY = 'sxs-prayer-sim-v1';
-  const PULLS = 100, COST = 100;
+  const STORE_KEY = 'sxs-prayer-sim-v2'; // v2: starting gems changed to 1000
+  const GEMS_PER_PULL = 1;
 
   // Drop rates (SPEC §5) and pity (SPEC §6). Index order matters: higher = rarer.
   const TIERS = [
@@ -24,7 +24,7 @@
   const SCROLL_ANCHOR = 1540; // newest item's center stays about here in the grid viewport
 
   const DEFAULT_STATE = {
-    gems: 307,
+    gems: 1000,
     orange: '5.88K',
     prayersToday: 0,
     prayersTodayDate: null,
@@ -119,12 +119,12 @@
     return res;
   }
 
-  function rollSession() {
+  function rollSession(n) {
     const replay = params.get('replay') === 'video';
     const results = [];
-    for (let i = 0; i < PULLS; i++) {
+    for (let i = 0; i < n; i++) {
       if (replay) {
-        const [k, id] = window.VIDEO_REPLAY[i].split(':');
+        const [k, id] = window.VIDEO_REPLAY[i % window.VIDEO_REPLAY.length].split(':');
         const res = makeResult(k === 's' ? 'shard' : 'full', id);
         applyPityCounters(res.tier);
         results.push(res);
@@ -132,10 +132,10 @@
         results.push(rollOne());
       }
     }
-    state.gems -= COST;
-    state.prayersToday += PULLS;
+    state.gems -= n * GEMS_PER_PULL;
+    state.prayersToday += n;
     state.prayersTodayDate = todayStr();
-    state.points += PULLS;
+    state.points += n;
     // Sage Skill guarantee is still TBD (SPEC §6); placeholder: -1 per session with a Legendary.
     if (results.some((r) => r.tier === 3)) state.sagePity = state.sagePity <= 1 ? 3 : state.sagePity - 1;
     saveState();
@@ -200,16 +200,22 @@
 
   // Prayer
   tap($('#prayer-back'), () => show('home'));
-  tap($('#pray1'), () => {});
-  tap($('#pray10'), () => {});
-  tap($('#pray100'), () => {
-    if (Date.now() < state.skipConfirmUntil) { startDraw(); return; }
+  // Pray x1 / x10 / x100: same confirm, then a draw of that many pulls.
+  let pendingPulls = 0;
+  function requestPray(n) {
+    if (state.gems < n * GEMS_PER_PULL) { toast('Not enough gems'); return; }
+    if (Date.now() < state.skipConfirmUntil) { startDraw(n); return; }
+    pendingPulls = n;
+    $('#confirm-text').textContent = `Draw ${n} time${n === 1 ? '' : 's'}?`;
     $('#dont-show').checked = false;
     openConfirm(true);
-  });
+  }
+  tap($('#pray1'), () => requestPray(1));
+  tap($('#pray10'), () => requestPray(10));
+  tap($('#pray100'), () => requestPray(100));
   function openConfirm(open) {
     $('#confirm').hidden = !open;
-    $('#prayer').classList.toggle('behind-dialog', open);
+    document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('behind-dialog', open && s.classList.contains('active')));
   }
 
   // Hidden reset: hold the "Prayer" title for 2 s.
@@ -231,7 +237,7 @@
       state.skipConfirmUntil = m.getTime(); saveState();
     }
     openConfirm(false);
-    startDraw();
+    startDraw(pendingPulls);
   });
   $('.radio').addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -270,14 +276,18 @@
     return el;
   }
 
-  function startDraw() {
+  function startDraw(n) {
     const gemsBefore = state.gems;
-    const results = rollSession();
+    const results = rollSession(n);
 
     inner.innerHTML = '';
     const tiles = results.map((r, i) => { const t = buildTile(r, i); inner.appendChild(t); return t; });
-    const last = slotFor(PULLS - 1);
+    const last = slotFor(n - 1);
     inner.style.height = `${last.y + SIDE_Y0 + 60}px`;
+    // Small draws (x1, x10) fit on screen, so center them vertically instead of hugging the top.
+    const top = slotFor(0).y - 99, bottomEdge = Math.max(...results.map((_, i) => slotFor(i).y)) + 99 + 80;
+    const spare = grid.clientHeight - (bottomEdge - top);
+    inner.style.transform = spare > 0 ? `translateY(${spare / 2 - top}px)` : '';
     grid.classList.remove('scrollable');
     grid.scrollTop = 0;
     bottom.classList.remove('show');
@@ -285,7 +295,7 @@
     $('#draw-today').textContent = `Prayers Today: ${state.prayersToday}/10000`;
     drawScreen.querySelectorAll('.gem-count').forEach((el) => { el.textContent = gemsBefore; });
 
-    run = { tiles, results, shown: 0, start: 0, scroll: 0, raf: 0, finished: false };
+    run = { n, tiles, results, shown: 0, start: 0, scroll: 0, raf: 0, finished: false };
 
     setTimeout(() => {
       show('draw', true);
@@ -304,7 +314,7 @@
 
   function tick(now) {
     if (!run || run.finished) return;
-    const due = Math.min(PULLS, Math.floor((now - run.start) / T.interval) + 1);
+    const due = Math.min(run.n, Math.floor((now - run.start) / T.interval) + 1);
     while (run.shown < due) reveal(run.shown);
 
     const newest = slotFor(run.shown - 1);
@@ -312,17 +322,17 @@
     run.scroll += (target - run.scroll) * 0.12;
     grid.scrollTop = run.scroll;
 
-    if (run.shown >= PULLS && Math.abs(target - run.scroll) < 1) { finish(); return; }
-    if (run.shown >= PULLS && !bottom.classList.contains('show')) { bottom.classList.add('show'); drawScreen.classList.add('done'); }
+    if (run.shown >= run.n && Math.abs(target - run.scroll) < 1) { finish(); return; }
+    if (run.shown >= run.n && !bottom.classList.contains('show')) { bottom.classList.add('show'); drawScreen.classList.add('done'); }
     run.raf = requestAnimationFrame(tick);
   }
 
   function finish() {
     if (!run || run.finished) return;
     cancelAnimationFrame(run.raf);
-    while (run.shown < PULLS) reveal(run.shown);
+    while (run.shown < run.n) reveal(run.shown);
     run.finished = true;
-    const last = slotFor(PULLS - 1);
+    const last = slotFor(run.n - 1);
     grid.scrollTop = Math.max(0, last.y - SCROLL_ANCHOR);
     bottom.classList.add('show');
     drawScreen.classList.add('done');
@@ -331,6 +341,48 @@
 
   // Tap during the reveal to skip to the end.
   grid.addEventListener('pointerdown', () => { if (run && !run.finished && run.start) finish(); });
+
+  // Mouse click-and-drag scrolling once results are in (touch already scrolls natively).
+  let drag = null, glide = 0;
+  grid.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || !grid.classList.contains('scrollable')) return;
+    cancelAnimationFrame(glide);
+    drag = { y: e.clientY, t: performance.now(), v: 0 };
+    grid.setPointerCapture(e.pointerId);
+    grid.classList.add('dragging');
+    e.preventDefault();
+  });
+  grid.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const now = performance.now();
+    const dy = (e.clientY - drag.y) / scale; // client px -> stage px
+    grid.scrollTop -= dy;
+    drag.v = -dy / Math.max(1, now - drag.t); // stage px per ms
+    drag.y = e.clientY; drag.t = now;
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    let v = performance.now() - drag.t < 80 ? drag.v : 0;
+    drag = null;
+    grid.classList.remove('dragging');
+    let last = performance.now();
+    const step = (now) => {
+      const dt = now - last; last = now;
+      grid.scrollTop += v * dt;
+      v *= Math.pow(0.95, dt / 16);
+      if (Math.abs(v) > 0.02) glide = requestAnimationFrame(step);
+    };
+    if (v) glide = requestAnimationFrame(step);
+  };
+  grid.addEventListener('pointerup', endDrag);
+  grid.addEventListener('pointercancel', endDrag);
+
+  // Pray buttons on the results screen: same confirm, then a fresh draw.
+  [['#draw-pray1', 1], ['#draw-pray10', 10], ['#draw-pray100', 100]].forEach(([sel, n]) => tap($(sel), () => {
+    if (run && !run.finished) return;
+    cancelAnimationFrame(glide);
+    requestPray(n);
+  }));
 
   tap($('#draw-back'), () => {
     if (run && !run.finished) return;
@@ -351,7 +403,7 @@
   if (dbg === 'prayer' || dbg === 'confirm') { show('prayer'); if (dbg === 'confirm') openConfirm(true); }
   if (dbg === 'draw' || dbg === 'result') {
     T.okToDim = 0; T.dimToFirst = 0;
-    startDraw();
+    startDraw(+params.get('n') || 100);
     if (dbg === 'result') setTimeout(finish, 50);
     const freeze = +params.get('freeze');
     if (freeze) setTimeout(() => { cancelAnimationFrame(run.raf); run.finished = true; }, freeze);

@@ -16,11 +16,12 @@ Status: **draft, v1 = proof of concept.** Items marked ⚠️ **TBD** are waitin
 - Full skills stay as full skills. Duplicate conversion into shards is deferred (§3.4).
 - Back button → Prayer screen with updated counters
 - Random rolls using the game's real drop rates (§5) and pity rules (§6)
+- **Pray ×1 / ×10 / ×100** on both the Prayer and results screens. Each shows the Confirm dialog ("Draw N time(s)?"), costs 1 gem per pull, and uses the same reveal. ×1 and ×10 results are centered vertically, since they fit on one screen. ⚠️ That layout is a guess; the video only shows ×100.
 
 **Out of scope (v1).** These are shown as static images only and do nothing when tapped:
-- Pray ×1 / ×10, Premium / Affection banners, Exchange / Goals tabs, "Sage" class dropdown
+- Premium / Affection banners, Exchange / Goals tabs, "Sage" class dropdown
 - The Home screen's other buttons (events, shop, chat, nav bar)
-- Gem purchasing. Gems are simply decremented, and the app never blocks a pull.
+- Gem purchasing. You start with 1000 gems (10 × Pray ×100 = 1000 pulls). Pray ×100 is blocked with a "Not enough gems" message when fewer than 100 remain. Hold the Prayer title to reset.
 
 ---
 
@@ -130,7 +131,7 @@ Built in HTML/CSS (not an image) so it stays crisp:
 ### 3.5 Back to Prayer
 
 - Tapping ‹ crossfades (~200 ms) to the Prayer screen with updated gems, Prayers Today, point counter and pity text.
-- The Pray ×100 button on the result screen is decorative in v1. It could re-roll directly as a later enhancement.
+- The Pray ×1 / ×10 / ×100 buttons on the result screen open the same Confirm dialog, then start a fresh draw.
 
 ---
 
@@ -251,7 +252,7 @@ Kept in `localStorage` so it survives reloads:
 
 ```json
 {
-  "gems": 307,
+  "gems": 1000,
   "orange": "5.88K",
   "prayersToday": 0,
   "prayersTodayDate": "2026-09-24",
@@ -265,9 +266,9 @@ Kept in `localStorage` so it survives reloads:
 ```
 
 - `prayersToday` resets at local midnight.
-- Starting values match the start of the video.
+- Starting values match the start of the video, except gems, which start at 1000.
 - A hidden **reset** (e.g. long-press the "Prayer" title for 2 s) restores the starting values.
-- Gems may go negative. There is no purchase flow in v1.
+- Gems never go below 0. There is no purchase flow in v1.
 
 ## 8. Mobile / technical
 

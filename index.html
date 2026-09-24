@@ -51,6 +51,9 @@
     <div id="grid"><div id="grid-inner"></div></div>
     <div id="draw-bottom">
       <img src="assets/result_bottom.jpg" alt="">
+      <button class="hotspot" id="draw-pray1" style="left:10px;top:30px;width:385px;height:110px" aria-label="Pray x1"></button>
+      <button class="hotspot" id="draw-pray10" style="left:410px;top:30px;width:385px;height:110px" aria-label="Pray x10"></button>
+      <button class="hotspot" id="draw-pray100" style="left:810px;top:30px;width:390px;height:110px" aria-label="Pray x100"></button>
       <button class="hotspot" id="draw-back" style="left:25px;top:215px;width:200px;height:125px" aria-label="Back"></button>
     </div>
   </section>
@@ -60,7 +63,7 @@
     <div class="panel">
       <div class="panel-head">Confirm</div>
       <div class="panel-body">
-        <p>Draw 100 times?</p>
+        <p id="confirm-text">Draw 100 times?</p>
         <label class="radio"><input type="checkbox" id="dont-show"><span class="dot"></span>Don't show again today</label>
         <div class="panel-buttons">
           <button id="cancel" class="pill pill-cancel">Cancel</button>
