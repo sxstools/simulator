@@ -16,7 +16,7 @@ Status: **draft, v1 = proof of concept.** Items marked ⚠️ **TBD** are waitin
 - Full skills stay as full skills. Duplicate conversion into shards is deferred (§3.4).
 - Back button → Prayer screen with updated counters
 - Random rolls using the game's real drop rates (§5) and pity rules (§6)
-- **Pray ×1 / ×10 / ×100** on both the Prayer and results screens. Each shows the Confirm dialog ("Draw N time(s)?"), costs 1 gem per pull, and uses the same reveal. ×1 and ×10 results are centered vertically, since they fit on one screen. ⚠️ That layout is a guess; the video only shows ×100.
+- **Pray ×1 / ×10 / ×100** on both the Prayer and results screens. Only ×100 shows the Confirm dialog; ×1 and ×10 draw immediately. Each costs 1 gem per pull and uses the same reveal. ×1 and ×10 results are centered vertically, since they fit on one screen. ⚠️ That layout is a guess; the video only shows ×100.
 
 **Out of scope (v1).** These are shown as static images only and do nothing when tapped:
 - Premium / Affection banners, Exchange / Goals tabs, "Sage" class dropdown
@@ -131,7 +131,7 @@ Built in HTML/CSS (not an image) so it stays crisp:
 ### 3.5 Back to Prayer
 
 - Tapping ‹ crossfades (~200 ms) to the Prayer screen with updated gems, Prayers Today, point counter and pity text.
-- The Pray ×1 / ×10 / ×100 buttons on the result screen open the same Confirm dialog, then start a fresh draw.
+- The Pray ×1 / ×10 / ×100 buttons on the result screen start a fresh draw (×100 confirms first).
 
 ---
 

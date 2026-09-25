@@ -212,14 +212,15 @@
 
   // Prayer
   tap($('#prayer-back'), () => show('home'));
-  // Pray x1 / x10 / x100: same confirm, then a draw of that many pulls.
+  // Pray x1 / x10 / x100 (x100 confirms first).
   let pendingPulls = 0;
   function requestPray(n) {
     if (state.gems < n * GEMS_PER_PULL) { toast('Not enough gems'); return; }
-    if (Date.now() < state.skipConfirmUntil) { startDraw(n); return; }
+    // Only Pray x100 asks for confirmation, and not after "Don't show again today".
+    if (n < 100 || Date.now() < state.skipConfirmUntil) { startDraw(n); return; }
     pendingPulls = n;
     $('#confirm-text').textContent = `Draw ${n} time${n === 1 ? '' : 's'}?`;
-    $('#dont-show').checked = false;
+    setDontShow(false);
     openConfirm(true);
   }
   tap($('#pray1'), () => requestPray(1));
@@ -244,17 +245,19 @@
   // Confirm
   tap($('#cancel'), () => openConfirm(false));
   tap($('#ok'), () => {
-    if ($('#dont-show').checked) {
+    if ($('#dont-show').classList.contains('checked')) {
       const m = new Date(); m.setHours(24, 0, 0, 0);
       state.skipConfirmUntil = m.getTime(); saveState();
     }
     openConfirm(false);
     startDraw(pendingPulls);
   });
-  $('.radio').addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    const cb = $('#dont-show'); cb.checked = !cb.checked;
-  });
+  function setDontShow(on) {
+    const el = $('#dont-show');
+    el.classList.toggle('checked', on);
+    el.setAttribute('aria-checked', String(on));
+  }
+  tap($('#dont-show'), () => setDontShow(!$('#dont-show').classList.contains('checked')));
 
   // ---------- Draw ----------
   const grid = $('#grid'), inner = $('#grid-inner'), drawScreen = $('#draw'), bottom = $('#draw-bottom');
@@ -448,6 +451,7 @@
 
   // Debug: ?screen=prayer|confirm|draw|result jumps straight to a screen (draw also takes &freeze=<ms>).
   if (window.CLASS_PARENT[params.get('cls')] !== undefined) { state.cls = params.get('cls'); pool = poolFor(state.cls); renderCounters(); }
+  if (params.has('pts')) { state.points = +params.get('pts'); renderCounters(); }
   const dbg = params.get('screen');
   if (dbg === 'picker') { show('prayer'); openPicker(true); }
   if (dbg === 'prayer' || dbg === 'confirm') { show('prayer'); if (dbg === 'confirm') openConfirm(true); }

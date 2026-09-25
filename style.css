@@ -43,16 +43,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---------- Currency / counters ---------- */
 .gem-cover {
   position: absolute; left: 806px; top: 255px; width: 116px; height: 44px;
-  background: #292929; display: flex; align-items: center; justify-content: center;
+  background: #222222; display: flex; align-items: center; justify-content: center;
 }
-.gem-count { font-size: 42px; line-height: 1; letter-spacing: -.5px; }
+.gem-count { font-size: 42px; line-height: 1; letter-spacing: -.5px; font-weight: 500; color: #e1e1e1; }
 
 .points-cover {
-  position: absolute; left: 112px; top: 627px; width: 116px; height: 46px;
-  background: linear-gradient(90deg, #3e5067, #435569); border-radius: 0 23px 23px 0;
-  display: flex; align-items: center; padding-left: 14px;
+  /* Covers the right part of the pill; grows past the original end for longer counts, like the game. */
+  position: absolute; left: 112px; top: 624px; min-width: 118px; height: 51px;
+  background: #384b5f; border-radius: 0 25.5px 25.5px 0;
+  display: flex; align-items: center; padding: 0 20px 0 14px;
 }
-#points { font-size: 40px; line-height: 1; }
+#points { font-size: 35px; line-height: 1; font-weight: 500; color: #e1e1e1; white-space: nowrap; }
 #points .full { color: #dfe26a; }
 
 #prayers-plaque {
@@ -104,9 +105,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   position: absolute; top: 290px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 12px;
   font-size: 34px; font-weight: 700; color: #6b6b6b;
 }
-.radio input { display: none; }
 .radio .dot { width: 38px; height: 38px; border-radius: 50%; background: #7a7a7a; border: 4px solid #cfcfcf; box-shadow: 0 0 0 2px #888; }
-.radio input:checked + .dot { background: #d8de6a; box-shadow: 0 0 0 2px #6d7020; }
+.radio.checked .dot { background: #d8de6a; box-shadow: 0 0 0 2px #6d7020; }
 .panel-buttons { position: absolute; top: 380px; left: 32px; right: 32px; display: flex; gap: 40px; }
 .pill {
   flex: 1; height: 100px; border-radius: 50px; font-size: 44px; font-weight: 800; color: #1c1c1c;
@@ -203,8 +203,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* ---------- Class pill + picker ---------- */
 .cls-cover {
   position: absolute; left: 798px; top: 399px; width: 212px; height: 48px;
-  background: #4a4a4a; display: flex; align-items: center; justify-content: center;
-  font-size: 40px; line-height: 1; letter-spacing: -.3px; white-space: nowrap; overflow: hidden;
+  background: #3a3a3a; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; line-height: 1; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; font-weight: 500; color: #e1e1e1;
 }
 #class-picker { position: absolute; inset: 0; z-index: 30; }
 #class-picker[hidden] { display: none; }
@@ -218,9 +218,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 #class-list::-webkit-scrollbar { display: none; }
 .class-opt {
   display: block; width: 100%; height: 76px; padding: 0 36px; text-align: left;
-  font-size: 38px; font-weight: 700; color: #e8e8e8;
+  font-size: 38px; font-weight: 500; color: #e8e8e8;
 }
-.class-opt.base { color: #d8de6a; font-weight: 800; border-top: 2px solid #555; margin-top: 6px; }
+.class-opt.base { color: #d8de6a; font-weight: 500; border-top: 2px solid #555; margin-top: 6px; }
 .class-opt.base:first-child { border-top: 0; margin-top: 0; }
 .class-opt.selected { background: rgba(216, 222, 106, .22); }
 .class-opt:active { background: rgba(255,255,255,.12); }
