@@ -2,7 +2,6 @@
   'use strict';
 
   const STAGE_W = 1206, STAGE_H = 2622;
-  const CLASS_ID = 'sage';
   const STORE_KEY = 'sxs-prayer-sim-v2'; // v2: starting gems changed to 1000
   const GEMS_PER_PULL = 1;
 
@@ -34,6 +33,7 @@
     sinceLegendary: 43,
     sagePity: 3,
     skipConfirmUntil: 0,
+    cls: 'Sage',
   };
 
   const $ = (sel) => document.querySelector(sel);
@@ -74,9 +74,17 @@
   let state = loadState();
 
   // ---------- Rolling ----------
-  const pool = window.SKILLS[CLASS_ID];
-  const fullByRarity = { rare: [], epic: [], legendary: [] };
-  pool.full.forEach((s) => fullByRarity[s.rarity].push(s));
+  // A class's pool is its own skills plus every ancestor class's (the video's Sage pool = Mage + Sage).
+  function classPath(cls) {
+    const path = [];
+    for (let c = cls; c; c = window.CLASS_PARENT[c]) path.push(c);
+    return path;
+  }
+  function poolFor(cls) {
+    const path = classPath(cls);
+    return window.SKILL_DB.filter((s) => path.includes(s.cls));
+  }
+  let pool = poolFor(state.cls);
   const pick = (arr) => arr[Math.floor(rng() * arr.length)];
 
   function rollTier(minIdx) {
@@ -90,13 +98,14 @@
     return TIERS.length - 1;
   }
 
-  function makeResult(kind, id) {
-    if (kind === 'shard') {
-      const s = pool.shards.find((x) => x.id === id);
-      return { kind: 'shard', tier: 0, id, label: s.label, icon: `assets/icons/${id}_shard.png` };
-    }
-    const s = pool.full.find((x) => x.id === id);
-    return { kind: s.rarity, tier: TIERS.findIndex((t) => t.id === s.rarity), id, label: s.label, icon: `assets/icons/${id}.png` };
+  // tier: 0 = shard, 1-3 = full skill of that rarity.
+  function makeResult(skill, tier) {
+    return { skill, tier, kind: TIERS[tier].id };
+  }
+
+  function pickFull(tier) {
+    const matches = pool.filter((s) => s.rarity === TIERS[tier].id);
+    return pick(matches.length ? matches : pool);
   }
 
   function applyPityCounters(tier) {
@@ -114,7 +123,7 @@
     else if (state.sinceEpic >= PITY.epic - 1) min = 2;
     else if (state.sinceRare >= PITY.rare - 1) min = 1;
     const tier = rollTier(min);
-    const res = tier === 0 ? makeResult('shard', pick(pool.shards).id) : makeResult('full', pick(fullByRarity[TIERS[tier].id]).id);
+    const res = makeResult(tier === 0 ? pick(pool) : pickFull(tier), tier);
     applyPityCounters(res.tier);
     return res;
   }
@@ -124,8 +133,9 @@
     const results = [];
     for (let i = 0; i < n; i++) {
       if (replay) {
-        const [k, id] = window.VIDEO_REPLAY[i % window.VIDEO_REPLAY.length].split(':');
-        const res = makeResult(k === 's' ? 'shard' : 'full', id);
+        const [k, slug] = window.VIDEO_REPLAY[i % window.VIDEO_REPLAY.length].split(':');
+        const skill = window.SKILL_DB.find((x) => x.slug === slug);
+        const res = makeResult(skill, k === 's' ? 0 : TIERS.findIndex((t) => t.id === skill.rarity));
         applyPityCounters(res.tier);
         results.push(res);
       } else {
@@ -185,6 +195,8 @@
     $('#prayers-plaque').textContent = `Prayers Today: ${state.prayersToday}/10000`;
     $('#leg-away').textContent = PITY.legendary - state.sinceLegendary;
     $('#sage-away').textContent = state.sagePity;
+    document.querySelectorAll('.cls-name').forEach((el) => { el.textContent = state.cls; });
+    $('.cls-cover').style.fontSize = state.cls.length > 9 ? '33px' : state.cls.length > 7 ? '37px' : '';
   }
 
   let toastTimer;
@@ -259,10 +271,18 @@
     const el = document.createElement('div');
     el.className = `tile ${res.kind}`;
     el.style.left = `${x - 99}px`; el.style.top = `${y - 99}px`;
-    const longest = Math.max(...res.label.split('\n').map((l) => l.length));
-    let html = `<div class="halo"></div><div class="glow"></div><img src="${res.icon}" alt="">`;
-    if (res.kind === 'shard') html += '<div class="badge">3</div>';
-    html += `<div class="label${longest > 14 ? ' small' : ''}"></div>`;
+    const sk = res.skill, shard = res.tier === 0;
+    // Icons cut from the video already include the game's ring; downloaded art gets one from CSS.
+    const framedSrc = shard ? sk.shardIcon : (sk.framed ? sk.icon : null);
+    const icon = framedSrc
+      ? `<img class="framed" src="${framedSrc}" alt="">`
+      : `<div class="art${shard ? ' shard-art' : ''}"><img src="${sk.icon}" alt=""></div>`;
+    const explicit = shard ? sk.shardLabel : sk.label;
+    const label = explicit || (shard ? `${sk.name} Shard` : sk.name);
+    const longest = Math.max(...label.split('\n').map((l) => l.length));
+    let html = `<div class="halo"></div><div class="glow"></div>${icon}`;
+    if (shard) html += '<div class="badge">3</div>';
+    html += `<div class="label${explicit ? (longest > 14 ? ' small' : '') : ' auto'}"></div>`;
     if (res.tier >= 1) {
       const n = 4 + res.tier * 2;
       for (let k = 0; k < n; k++) {
@@ -272,7 +292,7 @@
       }
     }
     el.innerHTML = html;
-    el.querySelector('.label').textContent = res.label;
+    el.querySelector('.label').textContent = label;
     return el;
   }
 
@@ -390,16 +410,46 @@
     show('prayer', true);
   });
 
-  // Preload images so the reveal doesn't pop in.
-  ['assets/prayer.jpg', 'assets/draw_bg.jpg', 'assets/result_bottom.jpg',
-    ...pool.full.map((s) => `assets/icons/${s.id}.png`),
-    ...pool.shards.map((s) => `assets/icons/${s.id}_shard.png`),
-  ].forEach((src) => { const img = new Image(); img.src = src; });
+  // Preload images so the reveal doesn't pop in (only the selected class's pool).
+  const preloaded = new Set();
+  function preload(srcs) {
+    srcs.forEach((src) => { if (src && !preloaded.has(src)) { preloaded.add(src); new Image().src = src; } });
+  }
+  preload(['assets/prayer.jpg', 'assets/draw_bg.jpg', 'assets/result_bottom.jpg']);
+  const preloadPool = () => preload(pool.flatMap((s) => [s.icon, s.shardIcon]));
+  preloadPool();
+
+  // ---------- Class picker (the "Sage ⌄" pill on the Prayer screen) ----------
+  const picker = $('#class-picker'), list = $('#class-list');
+  window.CLASS_ORDER.forEach((c) => {
+    const b = document.createElement('button');
+    b.className = 'class-opt' + (window.CLASS_PARENT[c] ? '' : ' base');
+    b.dataset.cls = c;
+    b.textContent = c;
+    list.appendChild(b);
+  });
+  function openPicker(open) {
+    picker.hidden = !open;
+    list.querySelectorAll('.class-opt').forEach((b) => b.classList.toggle('selected', b.dataset.cls === state.cls));
+    if (open) list.querySelector('.selected')?.scrollIntoView({ block: 'center' });
+  }
+  tap($('#class-btn'), () => openPicker(picker.hidden));
+  picker.addEventListener('pointerdown', (e) => { if (e.target === picker) openPicker(false); });
+  // Use click (not pointerdown) so the list can still be scrolled with a finger.
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('.class-opt');
+    if (!b) return;
+    state.cls = b.dataset.cls; saveState();
+    pool = poolFor(state.cls); preloadPool();
+    renderCounters(); openPicker(false);
+  });
 
   renderCounters();
 
   // Debug: ?screen=prayer|confirm|draw|result jumps straight to a screen (draw also takes &freeze=<ms>).
+  if (window.CLASS_PARENT[params.get('cls')] !== undefined) { state.cls = params.get('cls'); pool = poolFor(state.cls); renderCounters(); }
   const dbg = params.get('screen');
+  if (dbg === 'picker') { show('prayer'); openPicker(true); }
   if (dbg === 'prayer' || dbg === 'confirm') { show('prayer'); if (dbg === 'confirm') openConfirm(true); }
   if (dbg === 'draw' || dbg === 'result') {
     T.okToDim = 0; T.dimToFirst = 0;

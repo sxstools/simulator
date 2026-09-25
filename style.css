@@ -150,7 +150,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .tile { position: absolute; width: 198px; height: 198px; opacity: 0; }
 .tile.in { opacity: 1; animation: tile-in .16s ease-out; }
 @keyframes tile-in { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.tile img { position: absolute; inset: 0; width: 198px; height: 198px; border-radius: 50%; }
+.tile img.framed { position: absolute; inset: 0; width: 198px; height: 198px; border-radius: 50%; }
 .tile .glow { position: absolute; inset: 4px; border-radius: 50%; }
 .tile.shard .glow { box-shadow: 0 0 14px 2px rgba(255,255,255,.28); }
 .tile.rare .glow { box-shadow: 0 0 22px 5px rgba(var(--rare), .7); }
@@ -199,3 +199,46 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: rgba(0,0,0,.8); padding: 24px 48px; border-radius: 40px; font-size: 40px;
 }
 #toast[hidden] { display: none; }
+
+/* ---------- Class pill + picker ---------- */
+.cls-cover {
+  position: absolute; left: 798px; top: 399px; width: 212px; height: 48px;
+  background: #4a4a4a; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; line-height: 1; letter-spacing: -.3px; white-space: nowrap; overflow: hidden;
+}
+#class-picker { position: absolute; inset: 0; z-index: 30; }
+#class-picker[hidden] { display: none; }
+#class-list {
+  position: absolute; left: 785px; top: 466px; width: 365px; max-height: 1180px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  background: rgba(38, 38, 40, .96); border: 3px solid #666; border-radius: 30px;
+  padding: 10px 0; box-shadow: 0 8px 30px rgba(0,0,0,.5);
+  animation: fade-in .12s ease-out;
+}
+#class-list::-webkit-scrollbar { display: none; }
+.class-opt {
+  display: block; width: 100%; height: 76px; padding: 0 36px; text-align: left;
+  font-size: 38px; font-weight: 700; color: #e8e8e8;
+}
+.class-opt.base { color: #d8de6a; font-weight: 800; border-top: 2px solid #555; margin-top: 6px; }
+.class-opt.base:first-child { border-top: 0; margin-top: 0; }
+.class-opt.selected { background: rgba(216, 222, 106, .22); }
+.class-opt:active { background: rgba(255,255,255,.12); }
+
+/* ---------- Downloaded skill art (no baked-in ring) ---------- */
+.tile .art {
+  position: absolute; inset: 6px; border-radius: 50%; overflow: hidden;
+  background: #1d1e22; border: 8px solid #cfcfcf; box-shadow: inset 0 0 0 3px rgba(0,0,0,.6);
+}
+.tile .art img { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); border-radius: 50%; }
+.tile.rare .art { border-color: #2f86ee; }
+.tile.epic .art { border-color: #9249e0; }
+.tile.legendary .art { border-color: #ee7a2c; }
+/* Shards: the skill art cut into a puzzle piece inside a silver ring, like the game's shard icons. */
+.tile .shard-art { border-color: #d6d6d6; background: #2a2b2f; }
+.tile .shard-art img {
+  inset: 7%; width: 86%; height: 86%; border-radius: 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M18 26h20a12 12 0 1 1 24 0h20v20a12 12 0 1 1 0 24v20H62a12 12 0 1 0-24 0H18V70a12 12 0 1 0 0-24z'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M18 26h20a12 12 0 1 1 24 0h20v20a12 12 0 1 1 0 24v20H62a12 12 0 1 0-24 0H18V70a12 12 0 1 0 0-24z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.tile .label.auto { white-space: normal; text-wrap: balance; }
