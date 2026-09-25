@@ -279,7 +279,9 @@
     const framedSrc = shard ? sk.shardIcon : (sk.framed ? sk.icon : null);
     const icon = framedSrc
       ? `<img class="framed" src="${framedSrc}" alt="">`
-      : `<div class="art${shard ? ' shard-art' : ''}"><img src="${sk.icon}" alt=""></div>`;
+      : shard
+        ? `<div class="art shard-art"><div class="shard-clip"><img src="${sk.icon}" alt=""></div></div>`
+        : `<div class="art"><img src="${sk.icon}" alt=""></div>`;
     const explicit = shard ? sk.shardLabel : sk.label;
     const label = explicit || (shard ? `${sk.name} Shard` : sk.name);
     const longest = Math.max(...label.split('\n').map((l) => l.length));
@@ -451,6 +453,7 @@
 
   // Debug: ?screen=prayer|confirm|draw|result jumps straight to a screen (draw also takes &freeze=<ms>).
   if (window.CLASS_PARENT[params.get('cls')] !== undefined) { state.cls = params.get('cls'); pool = poolFor(state.cls); renderCounters(); }
+  if (params.has('noframed')) window.SKILL_DB.forEach((sk) => { sk.framed = false; sk.shardIcon = null; sk.icon = `assets/skills/skill_${sk.id}.png`; });
   if (params.has('pts')) { state.points = +params.get('pts'); renderCounters(); }
   const dbg = params.get('screen');
   if (dbg === 'picker') { show('prayer'); openPicker(true); }
